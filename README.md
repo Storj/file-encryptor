@@ -50,10 +50,13 @@ for chunk in convergence.decrypt_generator("/path/to/file", key):
 The key generation mechanism is the following:
 
 ```
-key = HMAC-SHA256(passphrase, hex(SHA256(file-contents)))
+key = pbkdf2(passphrase + hex(SHA256(file-contents), salt))
 ```
 
 If no passphrase is given, a default is used.
+
+PBKDF2 is configured by default to produce a key 16 octets in length,
+uses an iteration depth of 2000, and employs HMAC-SHA1 as the prng.
 
 The file itself is encrypted using AES128-CTR, from pycryptopp. We're not
 specifying any IV, thinking that for convergent encryption that is the right
