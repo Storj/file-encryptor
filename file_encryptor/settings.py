@@ -1,6 +1,6 @@
 CHUNK_SIZE = 2**14 # 16kb
 
-DEFAULT_HMAC_PASSPHRASE = """Something old, something new."""
+DEFAULT_PASSPHRASE = """Something old, something new."""
 DEFAULT_KEY_LEN = 16 # For AES
 DEFAULT_SALT = """"""
 DEFAULT_ITERATION_DEPTH = 2000

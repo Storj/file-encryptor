@@ -1,5 +1,6 @@
 from Crypto.Protocol import KDF
 import hashlib
+import hmac
 import settings
 
 
@@ -13,11 +14,19 @@ def sha256_file(path):
 
     return h.hexdigest()
 
+def hashed_passphrase(passphrase, salt, key_len, iteration_depth):
+    """Deep hash the provided password. If no password is provided,
+       the default passphrase is returned and the hash is never
+       performed."""
+    if passphrase is None:
+        return settings.DEFAULT_PASSPHRASE
+    return KDF.PBKDF2(passphrase, salt, key_len, iteration_depth)
+
 def key_from_file(filename,
-                  passphrase=None,
-                  salt=None,
-                  key_len=None,
-                  iteration_depth=None):
+                  passphrase,
+                  salt=settings.DEFAULT_SALT,
+                  key_len=settings.DEFAULT_KEY_LEN,
+                  iteration_depth=settings.DEFAULT_ITERATION_DEPTH):
     """Calculate convergent encryption key.
 
     This takes a filename and an optional passphrase.
@@ -34,19 +43,9 @@ def key_from_file(filename,
     """
     hexdigest = sha256_file(filename)
 
-    if passphrase is None:
-        passphrase = settings.DEFAULT_HMAC_PASSPHRASE
-
-    if salt is None:
-        salt = settings.DEFAULT_SALT
-
-    if key_len is None:
-        key_len = settings.DEFAULT_KEY_LEN
-
-    if iteration_depth is None:
-        iteration_depth = settings.DEFAULT_ITERATION_DEPTH
-
-    return KDF.PBKDF2(passphrase + hexdigest,
-                      salt,
-                      key_len,
-                      iteration_depth)
+    return hmac.new(hashed_passphrase(passphrase,
+                                      salt,
+                                      key_len,
+                                      iteration_depth),
+                    hexdigest,
+                    hashlib.sha256).digest()
