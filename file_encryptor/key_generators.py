@@ -1,19 +1,32 @@
+from Crypto.Protocol import KDF
 import hashlib
 import hmac
+import settings
 
-from settings import CHUNK_SIZE, DEFAULT_HMAC_PASSPHRASE
 
 def sha256_file(path):
     """Calculate sha256 hex digest of a file."""
     h = hashlib.sha256()
 
     with open(path) as f:
-        for chunk in iter(lambda: f.read(CHUNK_SIZE), b''):
+        for chunk in iter(lambda: f.read(settings.CHUNK_SIZE), b''):
             h.update(chunk)
 
     return h.hexdigest()
 
-def key_from_file(filename, passphrase):
+def hashed_passphrase(passphrase, salt, key_len, iteration_depth):
+    """Deep hash the provided password. If no password is provided,
+       the default passphrase is returned and the hash is never
+       performed."""
+    if passphrase is None:
+        return settings.DEFAULT_PASSPHRASE
+    return KDF.PBKDF2(passphrase, salt, key_len, iteration_depth)
+
+def key_from_file(filename,
+                  passphrase,
+                  salt=settings.DEFAULT_SALT,
+                  key_len=settings.DEFAULT_KEY_LEN,
+                  iteration_depth=settings.DEFAULT_ITERATION_DEPTH):
     """Calculate convergent encryption key.
 
     This takes a filename and an optional passphrase.
@@ -22,15 +35,17 @@ def key_from_file(filename, passphrase):
     vulnerable to confirmation attacks and
     learn-partial-information attacks.
 
+    Multiple arguments are also available for configuring
+    the employed KDF; including salt, key_len, and
+    iteration_depth. Currently employed is PBKDF2 from
+    PKCS #5, v2
+
     """
     hexdigest = sha256_file(filename)
 
-    if passphrase is None:
-        passphrase = DEFAULT_HMAC_PASSPHRASE
-
-    return keyed_hash(hexdigest, passphrase)
-
-def keyed_hash(hexdigest, passphrase):
-    """Calculate a HMAC/keyed hash."""
-
-    return hmac.new(passphrase, hexdigest, hashlib.sha256).digest()
+    return hmac.new(hashed_passphrase(passphrase,
+                                      salt,
+                                      key_len,
+                                      iteration_depth),
+                    hexdigest,
+                    hashlib.sha256).digest()
