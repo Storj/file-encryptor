@@ -25,7 +25,7 @@ Here’s an example to encrypt a file inline using convergent encryption:
 
     import file_encryptor.convergence
 
-    key = convergence.encrypt_inline_file("/path/to/file", None)
+    key = convergence.encrypt_file_inline("/path/to/file", None)
 
 You can also specify a passphrase:
 
@@ -33,7 +33,7 @@ You can also specify a passphrase:
 
     import file_encryptor.convergence
 
-    key = convergence.encrypt_inline_file("/path/to/file", "rainbow dinosaur secret")
+    key = convergence.encrypt_file_inline("/path/to/file", "rainbow dinosaur secret")
 
 To decrypt a file inline, you need the key that was returned by the
 encrypt method:
@@ -42,9 +42,9 @@ encrypt method:
 
     import file_encryptor.convergence
 
-    key = convergence.encrypt_inline_file("/path/to/file", "rainbow dinosaur secret")
+    key = convergence.encrypt_file_inline("/path/to/file", "rainbow dinosaur secret")
 
-    convergence.decrypt_inline_file("/path/to/file", key)
+    convergence.decrypt_file_inline("/path/to/file", key)
 
 The reason why you cannot use the passphrase directly is because the key
 is derived from both the passphrase and the SHA-256 of the original
